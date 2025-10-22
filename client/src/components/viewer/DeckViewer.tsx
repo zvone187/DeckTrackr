@@ -1,0 +1,143 @@
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { trackSlideNavigation } from '@/api/viewer';
+
+interface DeckViewerProps {
+  deckId: string;
+  viewerId: string;
+  sessionId: string;
+  pageCount: number;
+  deckName: string;
+  onClose: () => void;
+}
+
+export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, onClose }: DeckViewerProps) {
+  const [currentSlide, setCurrentSlide] = useState(1);
+  const [slideStartTime, setSlideStartTime] = useState(Date.now());
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && currentSlide > 1) {
+        goToPreviousSlide();
+      } else if (e.key === 'ArrowRight' && currentSlide < pageCount) {
+        goToNextSlide();
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentSlide, pageCount]);
+
+  const trackNavigation = async (newSlide: number, fromSlide: number) => {
+    try {
+      await trackSlideNavigation({
+        deckId,
+        viewerId,
+        slideNumber: newSlide,
+        fromSlide,
+      });
+      console.log(`Tracked navigation: ${fromSlide} -> ${newSlide}`);
+    } catch (error) {
+      console.error('Failed to track navigation:', error);
+    }
+  };
+
+  const goToNextSlide = () => {
+    if (currentSlide < pageCount) {
+      const newSlide = currentSlide + 1;
+      trackNavigation(newSlide, currentSlide);
+      setCurrentSlide(newSlide);
+      setSlideStartTime(Date.now());
+    }
+  };
+
+  const goToPreviousSlide = () => {
+    if (currentSlide > 1) {
+      const newSlide = currentSlide - 1;
+      trackNavigation(newSlide, currentSlide);
+      setCurrentSlide(newSlide);
+      setSlideStartTime(Date.now());
+    }
+  };
+
+  const goToSlide = (slideNumber: number) => {
+    if (slideNumber !== currentSlide && slideNumber >= 1 && slideNumber <= pageCount) {
+      trackNavigation(slideNumber, currentSlide);
+      setCurrentSlide(slideNumber);
+      setSlideStartTime(Date.now());
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+      {/* Header */}
+      <div className="bg-black/90 backdrop-blur-sm border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <h1 className="text-white text-xl font-semibold">{deckName}</h1>
+        <div className="flex items-center gap-4">
+          <span className="text-white/70 text-sm">
+            Slide {currentSlide} of {pageCount}
+          </span>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10">
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Viewer */}
+      <div className="flex-1 flex items-center justify-center p-8 relative">
+        {/* Mock Slide Display */}
+        <div className="w-full max-w-5xl aspect-[16/9] bg-white rounded-lg shadow-2xl flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <h2 className="text-4xl font-bold text-gray-800">Slide {currentSlide}</h2>
+            <p className="text-gray-600">This is a mock slide viewer</p>
+            <p className="text-sm text-gray-500">In production, PDF.js would render the actual slide here</p>
+          </div>
+        </div>
+
+        {/* Navigation Buttons */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/50 hover:bg-black/70 text-white"
+          onClick={goToPreviousSlide}
+          disabled={currentSlide === 1}
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/50 hover:bg-black/70 text-white"
+          onClick={goToNextSlide}
+          disabled={currentSlide === pageCount}
+        >
+          <ChevronRight className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* Thumbnail Sidebar */}
+      <div className="bg-black/90 backdrop-blur-sm border-t border-white/10 px-6 py-4">
+        <div className="flex gap-2 overflow-x-auto">
+          {Array.from({ length: pageCount }, (_, i) => i + 1).map((slideNum) => (
+            <button
+              key={slideNum}
+              onClick={() => goToSlide(slideNum)}
+              className={`flex-shrink-0 w-20 h-14 rounded border-2 transition-all ${
+                slideNum === currentSlide
+                  ? 'border-primary bg-primary/20'
+                  : 'border-white/20 bg-white/5 hover:border-white/40'
+              }`}
+            >
+              <div className="w-full h-full flex items-center justify-center text-white text-xs">
+                {slideNum}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

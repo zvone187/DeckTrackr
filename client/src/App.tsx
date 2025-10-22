@@ -6,7 +6,10 @@ import { Login } from "./pages/Login"
 import { Register } from "./pages/Register"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Layout } from "./components/Layout"
-import { BlankPage } from "./pages/BlankPage"
+import { Dashboard } from "./pages/Dashboard"
+import { Analytics } from "./pages/Analytics"
+import { ViewerDetails } from "./pages/ViewerDetails"
+import { PublicDeckView } from "./pages/PublicDeckView"
 
 function App() {
   return (
@@ -16,8 +19,12 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/" element={<ProtectedRoute> <Layout /> </ProtectedRoute>} />
-          <Route path="*" element={<BlankPage />} />
+          <Route path="/view/:deckId" element={<PublicDeckView />} />
+          <Route path="/" element={<ProtectedRoute> <Layout /> </ProtectedRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="deck/:deckId/analytics" element={<Analytics />} />
+            <Route path="deck/:deckId/viewer/:viewerId" element={<ViewerDetails />} />
+          </Route>
         </Routes>
       </Router>
       <Toaster />
