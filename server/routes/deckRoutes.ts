@@ -171,13 +171,17 @@ router.get('/:id/pages/:pageNumber', async (req: Request, res: Response) => {
     const deck = await deckService.getDeckById(deckId);
 
     if (!deck) {
+      console.log(`[DeckRoutes] Deck not found: ${deckId}`);
       return res.status(404).json({ error: 'Deck not found' });
     }
 
     const deckDir = path.dirname(deck.filePath);
-    const imagePath = path.join(deckDir, 'pages', `page_${pageNumber}.png`);
+    const imagePath = path.resolve(path.join(deckDir, 'pages', `page_${pageNumber}.png`));
+
+    console.log(`[DeckRoutes] Serving page image: ${imagePath}`);
 
     if (!fs.existsSync(imagePath)) {
+      console.log(`[DeckRoutes] Page image not found: ${imagePath}`);
       return res.status(404).json({ error: 'Page not found' });
     }
 
@@ -199,13 +203,17 @@ router.get('/:id/thumbnails/:pageNumber', async (req: Request, res: Response) =>
     const deck = await deckService.getDeckById(deckId);
 
     if (!deck) {
+      console.log(`[DeckRoutes] Deck not found: ${deckId}`);
       return res.status(404).json({ error: 'Deck not found' });
     }
 
     const deckDir = path.dirname(deck.filePath);
-    const thumbnailPath = path.join(deckDir, 'thumbnails', `thumb_${pageNumber}.png`);
+    const thumbnailPath = path.resolve(path.join(deckDir, 'thumbnails', `thumb_${pageNumber}.png`));
+
+    console.log(`[DeckRoutes] Serving thumbnail image: ${thumbnailPath}`);
 
     if (!fs.existsSync(thumbnailPath)) {
+      console.log(`[DeckRoutes] Thumbnail image not found: ${thumbnailPath}`);
       return res.status(404).json({ error: 'Thumbnail not found' });
     }
 
