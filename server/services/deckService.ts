@@ -162,16 +162,42 @@ class DeckService {
       { $project: { date: '$_id', views: 1, _id: 0 } },
     ]);
 
+    // Find most viewed and drop-off slides
+    const mostViewedSlide = slideViewsAgg.length > 0
+      ? slideViewsAgg.reduce((max, curr) => curr.views > max.views ? curr : max, slideViewsAgg[0]).pageNumber
+      : 1;
+
+    const dropOffSlide = slideViewsAgg.length > 1
+      ? slideViewsAgg.reduce((min, curr) => curr.views < min.views ? curr : min, slideViewsAgg[0]).pageNumber
+      : deck.totalPages;
+
     return {
-      deck,
+      deck: {
+        _id: deck._id.toString(),
+        name: deck.title,
+        fileName: deck.fileName,
+        fileUrl: deck.filePath,
+        uploadDate: deck.createdAt?.toISOString(),
+        totalViewers,
+        totalOpens: totalViews,
+        isActive: deck.isActive,
+        ownerId: deck.userId.toString(),
+        pageCount: deck.totalPages,
+      },
       totalViewers,
-      totalViews,
-      totalTimeSpent,
-      averageTimeSpent,
-      uniqueViewers: totalViewers,
-      viewsByPage: slideViewsAgg,
-      recentViewers,
-      viewsOverTime: viewsOverTimeAgg,
+      totalOpens: totalViews,
+      averageTimeSpent: Math.round(averageTimeSpent),
+      mostViewedSlide,
+      dropOffSlide,
+      viewers: viewers.map(v => ({
+        _id: v._id.toString(),
+        email: v.email,
+        deckId: v.deckId.toString(),
+        firstOpened: v.createdAt?.toISOString() || new Date().toISOString(),
+        lastOpened: v.lastViewedAt?.toISOString() || new Date().toISOString(),
+        totalOpens: v.totalOpens,
+        totalTimeSpent: v.totalTimeSpent,
+      })),
     };
   }
 

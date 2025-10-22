@@ -51,8 +51,8 @@ export function Dashboard() {
 
   const handleGetLink = (deckId: string) => {
     const deck = decks.find((d) => d._id === deckId);
-    if (deck && deck.publicToken) {
-      const link = `${window.location.origin}/view/${deck.publicToken}`;
+    if (deck) {
+      const link = `${window.location.origin}/view/${deck._id}`;
       console.log('Generated share link for deck:', deckId);
       setShareLink(link);
       setShareLinkModalOpen(true);

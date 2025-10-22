@@ -23,6 +23,7 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
         viewerId,
         slideNumber: newSlide,
         fromSlide,
+        sessionId,
       });
       console.log(`Tracked navigation: ${fromSlide} -> ${newSlide}`);
     } catch (error) {

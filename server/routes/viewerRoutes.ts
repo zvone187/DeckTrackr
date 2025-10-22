@@ -1,8 +1,14 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import deckService from '../services/deckService';
 import viewerService from '../services/viewerService';
 
 const router = express.Router();
+
+// Helper function to check if a string is a valid MongoDB ObjectId
+const isValidObjectId = (id: string): boolean => {
+  return mongoose.Types.ObjectId.isValid(id) && /^[0-9a-fA-F]{24}$/.test(id);
+};
 
 // Description: Submit viewer email and get access to deck
 // Endpoint: POST /api/viewer/access
@@ -16,13 +22,21 @@ router.post('/access', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Deck ID and email are required' });
     }
 
-    const deck = await deckService.getDeckById(deckId);
+    // Try to get deck by ID if valid ObjectId, otherwise try token
+    let deck;
+    if (isValidObjectId(deckId)) {
+      deck = await deckService.getDeckById(deckId);
+    }
+    if (!deck) {
+      deck = await deckService.getDeckByToken(deckId);
+    }
+
     if (!deck || !deck.isActive) {
       return res.status(404).json({ error: 'Deck not found or inactive' });
     }
 
     const { viewer } = await viewerService.submitEmail({
-      deckId,
+      deckId: deck._id.toString(),
       email,
     });
 
@@ -44,8 +58,11 @@ router.get('/deck/:deckId', async (req: Request, res: Response) => {
   try {
     const deckId = req.params.deckId;
 
-    // Try to get by ID first, then by token
-    let deck = await deckService.getDeckById(deckId);
+    // Try to get deck by ID if valid ObjectId, otherwise try token
+    let deck;
+    if (isValidObjectId(deckId)) {
+      deck = await deckService.getDeckById(deckId);
+    }
     if (!deck) {
       deck = await deckService.getDeckByToken(deckId);
     }
@@ -100,11 +117,11 @@ router.post('/session/start', async (req: Request, res: Response) => {
 
 // Description: Track slide navigation
 // Endpoint: POST /api/viewer/track
-// Request: { deckId: string, viewerId: string, slideNumber: number, fromSlide?: number }
+// Request: { deckId: string, viewerId: string, slideNumber: number, fromSlide?: number, sessionId: string }
 // Response: { success: boolean }
 router.post('/track', async (req: Request, res: Response) => {
   try {
-    const { deckId, viewerId, slideNumber, fromSlide } = req.body;
+    const { deckId, viewerId, slideNumber, fromSlide, sessionId } = req.body;
 
     if (!deckId || !viewerId || slideNumber === undefined) {
       return res.status(400).json({ error: 'Deck ID, viewer ID, and slide number are required' });
@@ -112,7 +129,7 @@ router.post('/track', async (req: Request, res: Response) => {
 
     // Track the slide view
     await viewerService.trackSlide({
-      sessionId: '', // Will be handled by the service
+      sessionId: sessionId || '', // Use provided sessionId or empty string
       viewerId,
       deckId,
       slideNumber,
