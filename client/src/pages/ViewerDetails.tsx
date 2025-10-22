@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Mail, Calendar, Clock, MousePointerClick } from 'lucide-react';
@@ -16,13 +16,7 @@ export function ViewerDetails() {
   const [viewerDetails, setViewerDetails] = useState<ViewerDetailsType | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (deckId && viewerId) {
-      loadViewerDetails();
-    }
-  }, [deckId, viewerId]);
-
-  const loadViewerDetails = async () => {
+  const loadViewerDetails = useCallback(async () => {
     if (!deckId || !viewerId) return;
 
     try {
@@ -30,17 +24,24 @@ export function ViewerDetails() {
       const response = await getViewerDetails(deckId, viewerId);
       setViewerDetails(response.viewerDetails);
       console.log('Viewer details loaded');
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load viewer details';
       console.error('Failed to load viewer details:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [deckId, viewerId, toast]);
+
+  useEffect(() => {
+    if (deckId && viewerId) {
+      loadViewerDetails();
+    }
+  }, [deckId, viewerId, loadViewerDetails]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

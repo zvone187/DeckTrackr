@@ -28,8 +28,8 @@ export function ViewersTable({ viewers, onViewDetails }: ViewersTableProps) {
   );
 
   const sortedViewers = [...filteredViewers].sort((a, b) => {
-    let aValue: any = a[sortField];
-    let bValue: any = b[sortField];
+    let aValue: string | number = a[sortField];
+    let bValue: string | number = b[sortField];
 
     if (sortField === 'lastOpened' || sortField === 'email') {
       aValue = aValue.toString();

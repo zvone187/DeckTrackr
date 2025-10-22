@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download } from 'lucide-react';
@@ -16,13 +16,7 @@ export function Analytics() {
   const [analytics, setAnalytics] = useState<DeckAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (deckId) {
-      loadAnalytics();
-    }
-  }, [deckId]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     if (!deckId) return;
 
     try {
@@ -30,17 +24,24 @@ export function Analytics() {
       const response = await getDeckAnalytics(deckId);
       setAnalytics(response.analytics);
       console.log('Analytics loaded');
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load analytics';
       console.error('Failed to load analytics:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [deckId, toast]);
+
+  useEffect(() => {
+    if (deckId) {
+      loadAnalytics();
+    }
+  }, [deckId, loadAnalytics]);
 
   const handleViewDetails = (viewerId: string) => {
     console.log('Navigating to viewer details:', viewerId);
@@ -65,11 +66,12 @@ export function Analytics() {
         title: 'Success',
         description: 'Analytics exported successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to export analytics';
       console.error('Failed to export analytics:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     }

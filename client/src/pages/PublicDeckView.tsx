@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { EmailCaptureForm } from '@/components/viewer/EmailCaptureForm';
 import { DeckViewer } from '@/components/viewer/DeckViewer';
@@ -16,14 +16,7 @@ export function PublicDeckView() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (deckId) {
-      loadDeck();
-      checkExistingViewer();
-    }
-  }, [deckId]);
-
-  const loadDeck = async () => {
+  const loadDeck = useCallback(async () => {
     if (!deckId) return;
 
     try {
@@ -33,7 +26,7 @@ export function PublicDeckView() {
       setPageCount(response.deck.pageCount);
       setIsActive(response.deck.isActive);
       console.log('Deck loaded:', response.deck.name);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to load deck:', error);
       toast({
         title: 'Error',
@@ -43,16 +36,36 @@ export function PublicDeckView() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [deckId, toast]);
 
-  const checkExistingViewer = () => {
+  const startSession = useCallback(async (vId: string) => {
+    if (!deckId) return;
+
+    try {
+      console.log('Starting viewing session');
+      const response = await startViewingSession({ deckId, viewerId: vId });
+      setSessionId(response.sessionId);
+      console.log('Session started:', response.sessionId);
+    } catch (error) {
+      console.error('Failed to start session:', error);
+    }
+  }, [deckId]);
+
+  const checkExistingViewer = useCallback(() => {
     const storedViewerId = localStorage.getItem(`viewer_${deckId}`);
     if (storedViewerId) {
       console.log('Found existing viewer:', storedViewerId);
       setViewerId(storedViewerId);
       startSession(storedViewerId);
     }
-  };
+  }, [deckId, startSession]);
+
+  useEffect(() => {
+    if (deckId) {
+      loadDeck();
+      checkExistingViewer();
+    }
+  }, [deckId, loadDeck, checkExistingViewer]);
 
   const handleEmailSubmit = async (email: string) => {
     if (!deckId) return;
@@ -66,28 +79,16 @@ export function PublicDeckView() {
       localStorage.setItem(`viewer_${deckId}`, newViewerId);
       console.log('Viewer registered:', newViewerId);
       await startSession(newViewerId);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit email';
       console.error('Failed to submit email:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const startSession = async (vId: string) => {
-    if (!deckId) return;
-
-    try {
-      console.log('Starting viewing session');
-      const response = await startViewingSession({ deckId, viewerId: vId });
-      setSessionId(response.sessionId);
-      console.log('Session started:', response.sessionId);
-    } catch (error: any) {
-      console.error('Failed to start session:', error);
     }
   };
 
@@ -97,7 +98,7 @@ export function PublicDeckView() {
         console.log('Ending viewing session');
         await endViewingSession(sessionId);
         console.log('Session ended');
-      } catch (error: any) {
+      } catch (error) {
         console.error('Failed to end session:', error);
       }
     }

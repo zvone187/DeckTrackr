@@ -75,11 +75,12 @@ export function UploadDeckModal({ open, onOpenChange, onSuccess }: UploadDeckMod
       setSelectedFile(null);
       onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload deck';
       console.error('Upload error:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -114,7 +115,7 @@ export function UploadDeckModal({ open, onOpenChange, onSuccess }: UploadDeckMod
 
   const removeFile = () => {
     setSelectedFile(null);
-    setValue('file', null as any);
+    setValue('file', [] as unknown as FileList);
   };
 
   return (

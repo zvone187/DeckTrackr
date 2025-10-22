@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText } from 'lucide-react';
@@ -21,27 +21,28 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadDecks();
-  }, []);
-
-  const loadDecks = async () => {
+  const loadDecks = useCallback(async () => {
     try {
       console.log('Loading decks...');
       const response = await getDecks();
       setDecks(response.decks);
       console.log('Decks loaded:', response.decks.length);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load decks';
       console.error('Failed to load decks:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadDecks();
+  }, [loadDecks]);
 
   const handleViewAnalytics = (deckId: string) => {
     console.log('Navigating to analytics for deck:', deckId);
@@ -54,11 +55,12 @@ export function Dashboard() {
       const response = await getDeckLink(deckId);
       setShareLink(response.link);
       setShareLinkModalOpen(true);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get link';
       console.error('Failed to get link:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     }
@@ -85,11 +87,12 @@ export function Dashboard() {
       });
       setDeleteModalOpen(false);
       setSelectedDeck(null);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete deck';
       console.error('Failed to delete deck:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     }
@@ -104,11 +107,12 @@ export function Dashboard() {
         title: 'Success',
         description: `Deck ${isActive ? 'activated' : 'deactivated'} successfully`,
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update deck';
       console.error('Failed to update deck:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     }

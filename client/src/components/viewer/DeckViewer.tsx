@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { trackSlideNavigation } from '@/api/viewer';
@@ -16,21 +16,6 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
   const [currentSlide, setCurrentSlide] = useState(1);
   const [slideStartTime, setSlideStartTime] = useState(Date.now());
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft' && currentSlide > 1) {
-        goToPreviousSlide();
-      } else if (e.key === 'ArrowRight' && currentSlide < pageCount) {
-        goToNextSlide();
-      } else if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentSlide, pageCount]);
-
   const trackNavigation = async (newSlide: number, fromSlide: number) => {
     try {
       await trackSlideNavigation({
@@ -45,23 +30,23 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
     }
   };
 
-  const goToNextSlide = () => {
+  const goToNextSlide = useCallback(() => {
     if (currentSlide < pageCount) {
       const newSlide = currentSlide + 1;
       trackNavigation(newSlide, currentSlide);
       setCurrentSlide(newSlide);
       setSlideStartTime(Date.now());
     }
-  };
+  }, [currentSlide, pageCount]);
 
-  const goToPreviousSlide = () => {
+  const goToPreviousSlide = useCallback(() => {
     if (currentSlide > 1) {
       const newSlide = currentSlide - 1;
       trackNavigation(newSlide, currentSlide);
       setCurrentSlide(newSlide);
       setSlideStartTime(Date.now());
     }
-  };
+  }, [currentSlide]);
 
   const goToSlide = (slideNumber: number) => {
     if (slideNumber !== currentSlide && slideNumber >= 1 && slideNumber <= pageCount) {
@@ -70,6 +55,21 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
       setSlideStartTime(Date.now());
     }
   };
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && currentSlide > 1) {
+        goToPreviousSlide();
+      } else if (e.key === 'ArrowRight' && currentSlide < pageCount) {
+        goToNextSlide();
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentSlide, pageCount, goToNextSlide, goToPreviousSlide, onClose]);
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
