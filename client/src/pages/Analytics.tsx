@@ -7,7 +7,7 @@ import { ViewersTable } from '@/components/analytics/ViewersTable';
 import { getDeckAnalytics, exportAnalytics } from '@/api/decks';
 import { DeckAnalytics } from '@/types/deck';
 import { useToast } from '@/hooks/useToast';
-import { Eye, MousePointerClick, Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { Eye, MousePointerClick, Clock } from 'lucide-react';
 
 export function Analytics() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -126,7 +126,7 @@ export function Analytics() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard
           title="Total Viewers"
           value={analytics.totalViewers}
@@ -145,43 +145,6 @@ export function Analytics() {
           icon={Clock}
           description="Per viewing session"
         />
-        <MetricCard
-          title="Most Viewed Slide"
-          value={`Slide ${analytics.mostViewedSlide}`}
-          icon={TrendingUp}
-          description="Highest engagement"
-        />
-      </div>
-
-      {/* Drop-off Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-6 rounded-lg border-2 bg-gradient-to-br from-card to-card/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-full bg-destructive/10">
-              <TrendingDown className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Drop-off Point</h3>
-              <p className="text-sm text-muted-foreground">Where viewers typically stop</p>
-            </div>
-          </div>
-          <p className="text-3xl font-bold">Slide {analytics.dropOffSlide}</p>
-        </div>
-
-        <div className="p-6 rounded-lg border-2 bg-gradient-to-br from-card to-card/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-full bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Engagement Rate</h3>
-              <p className="text-sm text-muted-foreground">Viewers who completed the deck</p>
-            </div>
-          </div>
-          <p className="text-3xl font-bold">
-            {Math.round((analytics.mostViewedSlide / analytics.deck.pageCount) * 100)}%
-          </p>
-        </div>
       </div>
 
       {/* Viewers Table */}
