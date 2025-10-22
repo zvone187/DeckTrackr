@@ -8,7 +8,9 @@ const localApi = axios.create({
   validateStatus: (status) => {
     return status >= 200 && status < 300;
   },
-  transformResponse: [(data) => JSONbig.parse(data)]
+  transformResponse: [(data) => JSONbig.parse(data)],
+  maxBodyLength: 10 * 1024 * 1024, // 10MB
+  maxContentLength: 10 * 1024 * 1024, // 10MB
 });
 
 let accessToken: string | null = null;
