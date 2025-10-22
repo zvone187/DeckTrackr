@@ -49,18 +49,17 @@ export function Dashboard() {
     navigate(`/deck/${deckId}/analytics`);
   };
 
-  const handleGetLink = async (deckId: string) => {
-    try {
-      console.log('Getting link for deck:', deckId);
-      const response = await getDeckLink(deckId);
-      setShareLink(response.link);
+  const handleGetLink = (deckId: string) => {
+    const deck = decks.find((d) => d._id === deckId);
+    if (deck && deck.publicToken) {
+      const link = `${window.location.origin}/view/${deck.publicToken}`;
+      console.log('Generated share link for deck:', deckId);
+      setShareLink(link);
       setShareLinkModalOpen(true);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to get link';
-      console.error('Failed to get link:', error);
+    } else {
       toast({
         title: 'Error',
-        description: errorMessage,
+        description: 'Unable to generate share link',
         variant: 'destructive',
       });
     }

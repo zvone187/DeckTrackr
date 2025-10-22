@@ -6,146 +6,53 @@ import { Deck, DeckAnalytics, ViewerDetails } from '@/types/deck';
 // Request: {}
 // Response: { decks: Deck[] }
 export const getDecks = async () => {
-  // Mocking the response
-  return new Promise<{ decks: Deck[] }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        decks: [
-          {
-            _id: '1',
-            name: 'Series A Pitch Deck',
-            fileName: 'series-a-deck.pdf',
-            fileUrl: '/uploads/deck1.pdf',
-            uploadDate: '2025-01-10T10:00:00Z',
-            totalViewers: 12,
-            totalOpens: 28,
-            isActive: true,
-            ownerId: 'user1',
-            pageCount: 15,
-          },
-          {
-            _id: '2',
-            name: 'Product Demo Deck',
-            fileName: 'product-demo.pdf',
-            fileUrl: '/uploads/deck2.pdf',
-            uploadDate: '2025-01-15T14:30:00Z',
-            totalViewers: 8,
-            totalOpens: 15,
-            isActive: true,
-            ownerId: 'user1',
-            pageCount: 20,
-          },
-          {
-            _id: '3',
-            name: 'Q4 Investor Update',
-            fileName: 'q4-update.pdf',
-            fileUrl: '/uploads/deck3.pdf',
-            uploadDate: '2025-01-20T09:15:00Z',
-            totalViewers: 5,
-            totalOpens: 7,
-            isActive: false,
-            ownerId: 'user1',
-            pageCount: 12,
-          },
-        ],
-      });
-    }, 500);
-  });
-  // Uncomment the below lines to make an actual API call
-  // try {
-  //   const response = await api.get('/api/decks');
-  //   return response.data;
-  // } catch (error: any) {
-  //   throw new Error(error?.response?.data?.message || error.message);
-  // }
+  try {
+    const response = await api.get('/api/decks');
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Upload a new deck
 // Endpoint: POST /api/decks
-// Request: FormData with { name: string, file: File }
+// Request: FormData with { title: string, file: File }
 // Response: { deck: Deck }
 export const uploadDeck = async (data: FormData) => {
-  // Mocking the response
-  return new Promise<{ deck: Deck }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        deck: {
-          _id: '4',
-          name: data.get('name') as string,
-          fileName: 'new-deck.pdf',
-          fileUrl: '/uploads/deck4.pdf',
-          uploadDate: new Date().toISOString(),
-          totalViewers: 0,
-          totalOpens: 0,
-          isActive: true,
-          ownerId: 'user1',
-          pageCount: 18,
-        },
-      });
-    }, 2000);
-  });
-  // Uncomment the below lines to make an actual API call
-  // try {
-  //   const response = await api.post('/api/decks', data, {
-  //     headers: { 'Content-Type': 'multipart/form-data' },
-  //   });
-  //   return response.data;
-  // } catch (error: any) {
-  //   throw new Error(error?.response?.data?.message || error.message);
-  // }
+  try {
+    const response = await api.post('/api/decks', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Delete a deck
 // Endpoint: DELETE /api/decks/:deckId
 // Request: {}
-// Response: { success: boolean }
+// Response: { message: string }
 export const deleteDeck = async (deckId: string) => {
-  // Mocking the response
-  return new Promise<{ success: boolean }>((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true });
-    }, 500);
-  });
-  // Uncomment the below lines to make an actual API call
-  // try {
-  //   const response = await api.delete(`/api/decks/${deckId}`);
-  //   return response.data;
-  // } catch (error: any) {
-  //   throw new Error(error?.response?.data?.message || error.message);
-  // }
+  try {
+    const response = await api.delete(`/api/decks/${deckId}`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Update deck details
 // Endpoint: PUT /api/decks/:deckId
-// Request: { name?: string, isActive?: boolean }
+// Request: { title?: string, isActive?: boolean }
 // Response: { deck: Deck }
-export const updateDeck = async (deckId: string, data: { name?: string; isActive?: boolean }) => {
-  // Mocking the response
-  return new Promise<{ deck: Deck }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        deck: {
-          _id: deckId,
-          name: data.name || 'Updated Deck',
-          fileName: 'deck.pdf',
-          fileUrl: '/uploads/deck.pdf',
-          uploadDate: '2025-01-10T10:00:00Z',
-          totalViewers: 12,
-          totalOpens: 28,
-          isActive: data.isActive !== undefined ? data.isActive : true,
-          ownerId: 'user1',
-          pageCount: 15,
-        },
-      });
-    }, 500);
-  });
-  // Uncomment the below lines to make an actual API call
-  // try {
-  //   const response = await api.put(`/api/decks/${deckId}`, data);
-  //   return response.data;
-  // } catch (error: any) {
-  //   throw new Error(error?.response?.data?.message || error.message);
-  // }
+export const updateDeck = async (deckId: string, data: { title?: string; isActive?: boolean }) => {
+  try {
+    const response = await api.put(`/api/decks/${deckId}`, data);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Get analytics for a specific deck

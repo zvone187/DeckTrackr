@@ -1,14 +1,28 @@
 export interface Deck {
   _id: string;
-  name: string;
+  title: string;
   fileName: string;
-  fileUrl: string;
-  uploadDate: string;
-  totalViewers: number;
-  totalOpens: number;
+  filePath?: string;
+  fileSize?: number;
+  totalPages: number;
+  pages?: Array<{
+    pageNumber: number;
+    imagePath: string;
+    thumbnailPath: string;
+  }>;
   isActive: boolean;
-  ownerId: string;
-  pageCount: number;
+  publicToken: string;
+  userId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  // Computed fields for compatibility
+  name?: string;
+  fileUrl?: string;
+  uploadDate?: string;
+  totalViewers?: number;
+  totalOpens?: number;
+  ownerId?: string;
+  pageCount?: number;
 }
 
 export interface DeckViewer {

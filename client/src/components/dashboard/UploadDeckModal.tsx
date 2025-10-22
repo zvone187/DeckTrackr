@@ -23,7 +23,7 @@ interface UploadDeckModalProps {
 }
 
 interface FormData {
-  name: string;
+  title: string;
   file: FileList;
 }
 
@@ -31,6 +31,7 @@ export function UploadDeckModal({ open, onOpenChange, onSuccess }: UploadDeckMod
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<FormData>();
 
@@ -44,12 +45,12 @@ export function UploadDeckModal({ open, onOpenChange, onSuccess }: UploadDeckMod
       return;
     }
 
-    console.log('Starting deck upload:', data.name);
+    console.log('Starting deck upload:', data.title);
     setUploading(true);
     setUploadProgress(0);
 
     const formData = new FormData();
-    formData.append('name', data.name);
+    formData.append('title', data.title);
     formData.append('file', selectedFile);
 
     // Simulate upload progress
@@ -118,6 +119,42 @@ export function UploadDeckModal({ open, onOpenChange, onSuccess }: UploadDeckMod
     setValue('file', [] as unknown as FileList);
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        toast({
+          title: 'Invalid file type',
+          description: 'Please select a PDF file',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: 'Maximum file size is 50MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] bg-background">
@@ -130,22 +167,31 @@ export function UploadDeckModal({ open, onOpenChange, onSuccess }: UploadDeckMod
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Deck Name *</Label>
+              <Label htmlFor="title">Deck Name *</Label>
               <Input
-                id="name"
+                id="title"
                 placeholder="e.g., Series A Pitch Deck"
-                {...register('name', { required: 'Deck name is required' })}
+                {...register('title', { required: 'Deck name is required' })}
                 disabled={uploading}
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
+              {errors.title && (
+                <p className="text-sm text-destructive">{errors.title.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label>PDF File *</Label>
               {!selectedFile ? (
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+                    isDragging
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted-foreground/25 hover:border-primary/50'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                   <input
                     type="file"
                     accept=".pdf"

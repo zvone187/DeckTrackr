@@ -18,13 +18,13 @@ export function DeckCard({ deck, onViewAnalytics, onGetLink, onDelete, onToggleA
     <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-emerald-200/60 dark:border-emerald-800/60 hover:border-emerald-400 dark:hover:border-emerald-600 bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30 dark:from-emerald-950/50 dark:via-teal-950/30 dark:to-green-950/30 backdrop-blur-sm">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <CardTitle className="text-xl font-bold line-clamp-2 flex-1 text-emerald-900 dark:text-emerald-100">{deck.name}</CardTitle>
+          <CardTitle className="text-xl font-bold line-clamp-2 flex-1 text-emerald-900 dark:text-emerald-100">{deck.title}</CardTitle>
           <Badge variant={deck.isActive ? 'default' : 'secondary'} className={deck.isActive ? 'ml-2 bg-emerald-600 hover:bg-emerald-700' : 'ml-2'}>
             {deck.isActive ? 'Active' : 'Inactive'}
           </Badge>
         </div>
         <p className="text-sm text-emerald-700 dark:text-emerald-400">
-          Uploaded {formatDistanceToNow(new Date(deck.uploadDate), { addSuffix: true })}
+          Uploaded {formatDistanceToNow(new Date(deck.createdAt || deck.uploadDate || Date.now()), { addSuffix: true })}
         </p>
       </CardHeader>
       <CardContent>
@@ -32,14 +32,14 @@ export function DeckCard({ deck, onViewAnalytics, onGetLink, onDelete, onToggleA
           <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-100/70 dark:bg-emerald-900/40 border border-emerald-300/50 dark:border-emerald-700/50">
             <Eye className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             <div>
-              <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">{deck.totalViewers}</p>
+              <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">{deck.totalViewers || 0}</p>
               <p className="text-xs text-emerald-700 dark:text-emerald-400">Unique Viewers</p>
             </div>
           </div>
           <div className="flex items-center gap-2 p-3 rounded-lg bg-teal-100/70 dark:bg-teal-900/40 border border-teal-300/50 dark:border-teal-700/50">
             <BarChart3 className="h-5 w-5 text-teal-600 dark:text-teal-400" />
             <div>
-              <p className="text-2xl font-bold text-teal-900 dark:text-teal-100">{deck.totalOpens}</p>
+              <p className="text-2xl font-bold text-teal-900 dark:text-teal-100">{deck.totalOpens || 0}</p>
               <p className="text-xs text-teal-700 dark:text-teal-400">Total Opens</p>
             </div>
           </div>
