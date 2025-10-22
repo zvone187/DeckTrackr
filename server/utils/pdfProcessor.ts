@@ -1,7 +1,17 @@
-import { PDFDocument } from 'pdf-lib';
 import sharp from 'sharp';
 import fs from 'fs/promises';
 import path from 'path';
+import { createCanvas, Canvas } from 'canvas';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+
+// Get __dirname in ES module context
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Import pdfjs-dist for Node.js using require in ES module
+const require = createRequire(import.meta.url);
+const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
 
 export interface ProcessedPage {
   pageNumber: number;
@@ -12,6 +22,28 @@ export interface ProcessedPage {
 export interface PDFProcessResult {
   totalPages: number;
   pages: ProcessedPage[];
+}
+
+// Custom Canvas Factory for pdfjs-dist
+class NodeCanvasFactory {
+  create(width: number, height: number): { canvas: Canvas; context: any } {
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
+    return {
+      canvas,
+      context,
+    };
+  }
+
+  reset(canvasAndContext: { canvas: Canvas; context: any }, width: number, height: number): void {
+    canvasAndContext.canvas.width = width;
+    canvasAndContext.canvas.height = height;
+  }
+
+  destroy(canvasAndContext: { canvas: Canvas; context: any }): void {
+    canvasAndContext.canvas.width = 0;
+    canvasAndContext.canvas.height = 0;
+  }
 }
 
 /**
@@ -27,40 +59,80 @@ export async function processPDF(
     await fs.mkdir(path.join(outputDir, 'pages'), { recursive: true });
     await fs.mkdir(path.join(outputDir, 'thumbnails'), { recursive: true });
 
+    // Read PDF file
     const pdfBuffer = await fs.readFile(pdfPath);
-    const pdfDoc = await PDFDocument.load(pdfBuffer);
-    const totalPages = pdfDoc.getPageCount();
+
+    // Load PDF with pdfjs-dist
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(pdfBuffer),
+      useSystemFonts: false,
+      standardFontDataUrl: path.join(__dirname, '..', 'node_modules', 'pdfjs-dist', 'standard_fonts'),
+      cMapUrl: path.join(__dirname, '..', 'node_modules', 'pdfjs-dist', 'cmaps'),
+      cMapPacked: true,
+    });
+
+    const pdfDoc = await loadingTask.promise;
+    const totalPages = pdfDoc.numPages;
 
     console.log(`[PDFProcessor] PDF has ${totalPages} pages`);
 
     const pages: ProcessedPage[] = [];
+    const canvasFactory = new NodeCanvasFactory();
 
-    for (let i = 0; i < totalPages; i++) {
-      const pageNumber = i + 1;
-      console.log(`[PDFProcessor] Processing page ${pageNumber}/${totalPages}`);
+    for (let i = 1; i <= totalPages; i++) {
+      console.log(`[PDFProcessor] Processing page ${i}/${totalPages}`);
 
-      const imagePath = `pages/page_${pageNumber}.png`;
-      const thumbnailPath = `thumbnails/thumb_${pageNumber}.png`;
+      const page = await pdfDoc.getPage(i);
 
-      // Create placeholder images (for demo - in production use pdf-poppler or similar)
-      await createPlaceholderImage(
-        path.join(outputDir, imagePath),
-        pageNumber,
-        1200,
-        1600
+      // Use a higher scale for better quality
+      const viewport = page.getViewport({ scale: 2.5 });
+
+      const canvasAndContext = canvasFactory.create(
+        Math.floor(viewport.width),
+        Math.floor(viewport.height)
       );
-      await createPlaceholderImage(
-        path.join(outputDir, thumbnailPath),
-        pageNumber,
-        300,
-        400
-      );
+
+      // Render with white background
+      const context = canvasAndContext.context;
+      context.fillStyle = 'white';
+      context.fillRect(0, 0, canvasAndContext.canvas.width, canvasAndContext.canvas.height);
+
+      // Render PDF page to canvas with proper settings
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport,
+        background: 'white',
+        enableWebGL: false,
+      };
+
+      await page.render(renderContext).promise;
+
+      // Convert canvas to PNG buffer
+      const imageBuffer = canvasAndContext.canvas.toBuffer('image/png');
+
+      // Save full-size image
+      const imagePath = `pages/page_${i}.png`;
+      const fullImagePath = path.join(outputDir, imagePath);
+      await fs.writeFile(fullImagePath, imageBuffer);
+
+      console.log(`[PDFProcessor] Saved page ${i} (${imageBuffer.length} bytes)`);
+
+      // Create and save thumbnail
+      const thumbnailPath = `thumbnails/thumb_${i}.png`;
+      const fullThumbnailPath = path.join(outputDir, thumbnailPath);
+      await sharp(imageBuffer)
+        .resize(400, 300, { fit: 'inside', withoutEnlargement: true })
+        .png()
+        .toFile(fullThumbnailPath);
 
       pages.push({
-        pageNumber,
+        pageNumber: i,
         imagePath,
         thumbnailPath,
       });
+
+      // Clean up canvas
+      canvasFactory.destroy(canvasAndContext);
     }
 
     console.log(`[PDFProcessor] Successfully processed ${totalPages} pages`);
@@ -73,29 +145,6 @@ export async function processPDF(
     console.error(`[PDFProcessor] Error processing PDF: ${error}`);
     throw new Error(`Failed to process PDF: ${error.message}`);
   }
-}
-
-/**
- * Create a placeholder image with page number
- */
-async function createPlaceholderImage(
-  outputPath: string,
-  pageNumber: number,
-  width: number,
-  height: number
-): Promise<void> {
-  const svg = `
-    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="white"/>
-      <rect width="100%" height="100%" fill="none" stroke="#e5e7eb" stroke-width="2"/>
-      <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="48"
-            fill="#9ca3af" text-anchor="middle" dominant-baseline="middle">
-        Page ${pageNumber}
-      </text>
-    </svg>
-  `;
-
-  await sharp(Buffer.from(svg)).png().toFile(outputPath);
 }
 
 /**
