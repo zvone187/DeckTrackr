@@ -141,7 +141,7 @@ router.get('/:id/analytics', requireUser(), async (req: Request, res: Response) 
 // Description: Get viewer details
 // Endpoint: GET /api/decks/:id/viewers/:viewerId
 // Request: {}
-// Response: { viewer: ViewerDetail }
+// Response: { viewerDetails: ViewerDetail }
 router.get('/:id/viewers/:viewerId', requireUser(), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
@@ -153,7 +153,7 @@ router.get('/:id/viewers/:viewerId', requireUser(), async (req: Request, res: Re
       return res.status(404).json({ error: 'Viewer not found' });
     }
 
-    res.status(200).json({ viewer: viewerDetails });
+    res.status(200).json({ viewerDetails });
   } catch (error) {
     console.error(`[DeckRoutes] Error fetching viewer details: ${error}`);
     res.status(500).json({ error: error.message });

@@ -24,10 +24,26 @@ export interface UpdateDeckData {
 }
 
 class DeckService {
-  async getUserDecks(userId: string): Promise<IDeck[]> {
+  async getUserDecks(userId: string): Promise<any[]> {
     console.log(`[DeckService] Fetching decks for user: ${userId}`);
     const decks = await Deck.find({ userId }).sort({ createdAt: -1 }).lean();
-    return decks;
+
+    // Enrich decks with viewer counts
+    const enrichedDecks = await Promise.all(
+      decks.map(async (deck) => {
+        const viewers = await Viewer.find({ deckId: deck._id }).lean();
+        const totalViewers = viewers.length;
+        const totalOpens = viewers.reduce((sum, v) => sum + v.totalOpens, 0);
+
+        return {
+          ...deck,
+          totalViewers,
+          totalOpens,
+        };
+      })
+    );
+
+    return enrichedDecks;
   }
 
   async getDeckById(deckId: string, userId?: string): Promise<IDeck | null> {
@@ -220,13 +236,15 @@ class DeckService {
           .lean();
         return {
           _id: session._id,
-          startedAt: session.startedAt,
-          endedAt: session.endedAt,
+          viewerId: session.viewerId,
+          deckId: session.deckId,
+          startTime: session.startedAt,
+          endTime: session.endedAt,
           duration: session.duration,
-          slides: slides.map((s) => ({
+          slideNavigations: slides.map((s) => ({
             slideNumber: s.slideNumber,
             timeSpent: s.timeSpent,
-            viewedAt: s.viewedAt,
+            timestamp: s.viewedAt,
           })),
         };
       })
@@ -236,13 +254,14 @@ class DeckService {
       viewer: {
         _id: viewer._id,
         email: viewer.email,
+        deckId: viewer.deckId,
         firstName: viewer.firstName,
         lastName: viewer.lastName,
         company: viewer.company,
         totalOpens: viewer.totalOpens,
         totalTimeSpent: viewer.totalTimeSpent,
-        firstViewedAt: viewer.firstViewedAt,
-        lastViewedAt: viewer.lastViewedAt,
+        firstOpened: viewer.firstViewedAt,
+        lastOpened: viewer.lastViewedAt,
       },
       sessions: sessionsWithSlides,
     };
