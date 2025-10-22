@@ -11,7 +11,7 @@ const router = express.Router();
 // Endpoint: GET /api/decks
 // Request: {}
 // Response: { decks: Array<Deck> }
-router.get('/', requireUser, async (req: Request, res: Response) => {
+router.get('/', requireUser(), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
     const decks = await deckService.getUserDecks(userId);
@@ -26,7 +26,7 @@ router.get('/', requireUser, async (req: Request, res: Response) => {
 // Endpoint: POST /api/decks
 // Request: FormData { title: string, file: File }
 // Response: { deck: Deck }
-router.post('/', requireUser, upload.single('file'), async (req: Request, res: Response) => {
+router.post('/', requireUser(), upload.single('file'), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
     const { title } = req.body;
@@ -52,7 +52,7 @@ router.post('/', requireUser, upload.single('file'), async (req: Request, res: R
 // Endpoint: GET /api/decks/:id
 // Request: {}
 // Response: { deck: Deck }
-router.get('/:id', requireUser, async (req: Request, res: Response) => {
+router.get('/:id', requireUser(), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
     const deckId = req.params.id;
@@ -73,7 +73,7 @@ router.get('/:id', requireUser, async (req: Request, res: Response) => {
 // Endpoint: PUT /api/decks/:id
 // Request: { title?: string, isActive?: boolean }
 // Response: { deck: Deck }
-router.put('/:id', requireUser, async (req: Request, res: Response) => {
+router.put('/:id', requireUser(), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
     const deckId = req.params.id;
@@ -100,7 +100,7 @@ router.put('/:id', requireUser, async (req: Request, res: Response) => {
 // Endpoint: DELETE /api/decks/:id
 // Request: {}
 // Response: { message: string }
-router.delete('/:id', requireUser, async (req: Request, res: Response) => {
+router.delete('/:id', requireUser(), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
     const deckId = req.params.id;
@@ -121,7 +121,7 @@ router.delete('/:id', requireUser, async (req: Request, res: Response) => {
 // Endpoint: GET /api/decks/:id/analytics
 // Request: {}
 // Response: { analytics: DeckAnalytics }
-router.get('/:id/analytics', requireUser, async (req: Request, res: Response) => {
+router.get('/:id/analytics', requireUser(), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
     const deckId = req.params.id;
@@ -142,7 +142,7 @@ router.get('/:id/analytics', requireUser, async (req: Request, res: Response) =>
 // Endpoint: GET /api/decks/:id/viewers/:viewerId
 // Request: {}
 // Response: { viewer: ViewerDetail }
-router.get('/:id/viewers/:viewerId', requireUser, async (req: Request, res: Response) => {
+router.get('/:id/viewers/:viewerId', requireUser(), async (req: Request, res: Response) => {
   try {
     const userId = req.user._id.toString();
     const deckId = req.params.id;
