@@ -60,68 +60,12 @@ export const updateDeck = async (deckId: string, data: { title?: string; isActiv
 // Request: {}
 // Response: { analytics: DeckAnalytics }
 export const getDeckAnalytics = async (deckId: string) => {
-  // Mocking the response
-  return new Promise<{ analytics: DeckAnalytics }>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        analytics: {
-          deck: {
-            _id: deckId,
-            name: 'Series A Pitch Deck',
-            fileName: 'series-a-deck.pdf',
-            fileUrl: '/uploads/deck1.pdf',
-            uploadDate: '2025-01-10T10:00:00Z',
-            totalViewers: 12,
-            totalOpens: 28,
-            isActive: true,
-            ownerId: 'user1',
-            pageCount: 15,
-          },
-          totalViewers: 12,
-          totalOpens: 28,
-          averageTimeSpent: 342,
-          mostViewedSlide: 5,
-          dropOffSlide: 12,
-          viewers: [
-            {
-              _id: 'v1',
-              email: 'investor1@vc.com',
-              deckId: deckId,
-              firstOpened: '2025-01-11T09:00:00Z',
-              lastOpened: '2025-01-15T14:30:00Z',
-              totalOpens: 5,
-              totalTimeSpent: 1200,
-            },
-            {
-              _id: 'v2',
-              email: 'investor2@fund.com',
-              deckId: deckId,
-              firstOpened: '2025-01-12T11:00:00Z',
-              lastOpened: '2025-01-12T11:00:00Z',
-              totalOpens: 1,
-              totalTimeSpent: 180,
-            },
-            {
-              _id: 'v3',
-              email: 'partner@capital.com',
-              deckId: deckId,
-              firstOpened: '2025-01-13T15:00:00Z',
-              lastOpened: '2025-01-18T10:00:00Z',
-              totalOpens: 3,
-              totalTimeSpent: 890,
-            },
-          ],
-        },
-      });
-    }, 500);
-  });
-  // Uncomment the below lines to make an actual API call
-  // try {
-  //   const response = await api.get(`/api/decks/${deckId}/analytics`);
-  //   return response.data;
-  // } catch (error: any) {
-  //   throw new Error(error?.response?.data?.message || error.message);
-  // }
+  try {
+    const response = await api.get(`/api/decks/${deckId}/analytics`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.error || error.message);
+  }
 };
 
 // Description: Get detailed viewer information

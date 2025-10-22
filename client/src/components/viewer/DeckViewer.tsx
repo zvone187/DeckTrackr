@@ -88,13 +88,17 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
 
       {/* Main Viewer */}
       <div className="flex-1 flex items-center justify-center p-8 relative">
-        {/* Mock Slide Display */}
-        <div className="w-full max-w-5xl aspect-[16/9] bg-white rounded-lg shadow-2xl flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <h2 className="text-4xl font-bold text-gray-800">Slide {currentSlide}</h2>
-            <p className="text-gray-600">This is a mock slide viewer</p>
-            <p className="text-sm text-gray-500">In production, PDF.js would render the actual slide here</p>
-          </div>
+        {/* Actual Slide Display */}
+        <div className="w-full max-w-5xl aspect-[16/9] bg-white rounded-lg shadow-2xl flex items-center justify-center overflow-hidden">
+          <img
+            src={`/api/decks/${deckId}/pages/${currentSlide}`}
+            alt={`Slide ${currentSlide}`}
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              console.error(`Failed to load slide ${currentSlide}`);
+              e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600"%3E%3Crect width="800" height="600" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%239ca3af" font-size="24"%3EFailed to load slide%3C/text%3E%3C/svg%3E';
+            }}
+          />
         </div>
 
         {/* Navigation Buttons */}
@@ -125,15 +129,27 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
             <button
               key={slideNum}
               onClick={() => goToSlide(slideNum)}
-              className={`flex-shrink-0 w-20 h-14 rounded border-2 transition-all ${
+              className={`flex-shrink-0 w-20 h-14 rounded border-2 transition-all overflow-hidden ${
                 slideNum === currentSlide
                   ? 'border-primary bg-primary/20'
                   : 'border-white/20 bg-white/5 hover:border-white/40'
               }`}
             >
-              <div className="w-full h-full flex items-center justify-center text-white text-xs">
-                {slideNum}
-              </div>
+              <img
+                src={`/api/decks/${deckId}/thumbnails/${slideNum}`}
+                alt={`Thumbnail ${slideNum}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    const div = document.createElement('div');
+                    div.className = 'w-full h-full flex items-center justify-center text-white text-xs';
+                    div.textContent = slideNum.toString();
+                    parent.appendChild(div);
+                  }
+                }}
+              />
             </button>
           ))}
         </div>
