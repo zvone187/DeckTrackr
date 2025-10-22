@@ -53,8 +53,9 @@ export function ViewersTable({ viewers, onViewDetails }: ViewersTableProps) {
   };
 
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
+    const roundedSeconds = Math.round(seconds);
+    const minutes = Math.floor(roundedSeconds / 60);
+    const remainingSeconds = roundedSeconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
   };
 
