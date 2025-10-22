@@ -117,23 +117,23 @@ router.post('/session/start', async (req: Request, res: Response) => {
 
 // Description: Track slide navigation
 // Endpoint: POST /api/viewer/track
-// Request: { deckId: string, viewerId: string, slideNumber: number, fromSlide?: number, sessionId: string }
+// Request: { deckId: string, viewerId: string, slideNumber: number, fromSlide?: number, sessionId: string, timeSpent?: number }
 // Response: { success: boolean }
 router.post('/track', async (req: Request, res: Response) => {
   try {
-    const { deckId, viewerId, slideNumber, fromSlide, sessionId } = req.body;
+    const { deckId, viewerId, slideNumber, fromSlide, sessionId, timeSpent } = req.body;
 
     if (!deckId || !viewerId || slideNumber === undefined) {
       return res.status(400).json({ error: 'Deck ID, viewer ID, and slide number are required' });
     }
 
-    // Track the slide view
+    // Track the slide view with time spent
     await viewerService.trackSlide({
       sessionId: sessionId || '', // Use provided sessionId or empty string
       viewerId,
       deckId,
       slideNumber,
-      timeSpent: 0, // Will be calculated on the next navigation
+      timeSpent: timeSpent || 0, // Time spent in seconds
     });
 
     console.log(`[ViewerRoutes] Tracked slide navigation: viewer ${viewerId}, slide ${slideNumber}`);

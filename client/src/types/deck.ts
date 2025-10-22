@@ -52,6 +52,12 @@ export interface SlideNavigation {
   fromSlide?: number;
 }
 
+export interface SlideEngagement {
+  pageNumber: number;
+  views: number;
+  averageTime: number;
+}
+
 export interface DeckAnalytics {
   deck: Deck;
   totalViewers: number;
@@ -59,6 +65,7 @@ export interface DeckAnalytics {
   averageTimeSpent: number;
   mostViewedSlide: number;
   dropOffSlide: number;
+  slideEngagement: SlideEngagement[];
   viewers: DeckViewer[];
 }
 

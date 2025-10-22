@@ -28,7 +28,7 @@ export const getPublicDeck = async (deckId: string) => {
 
 // Description: Track slide navigation
 // Endpoint: POST /api/viewer/track
-// Request: { deckId: string, viewerId: string, slideNumber: number, fromSlide?: number, sessionId?: string }
+// Request: { deckId: string, viewerId: string, slideNumber: number, fromSlide?: number, sessionId?: string, timeSpent?: number }
 // Response: { success: boolean }
 export const trackSlideNavigation = async (data: {
   deckId: string;
@@ -36,6 +36,7 @@ export const trackSlideNavigation = async (data: {
   slideNumber: number;
   fromSlide?: number;
   sessionId?: string;
+  timeSpent?: number;
 }) => {
   try {
     const response = await api.post('/api/viewer/track', data);

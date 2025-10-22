@@ -16,16 +16,20 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
   const [currentSlide, setCurrentSlide] = useState(1);
   const [slideStartTime, setSlideStartTime] = useState(Date.now());
 
-  const trackNavigation = async (newSlide: number, fromSlide: number) => {
+  const trackNavigation = async (newSlide: number, fromSlide: number, timeSpentMs: number) => {
     try {
+      // Convert milliseconds to seconds and round to 1 decimal place
+      const timeSpentSeconds = Math.round((timeSpentMs / 1000) * 10) / 10;
+
       await trackSlideNavigation({
         deckId,
         viewerId,
         slideNumber: newSlide,
         fromSlide,
         sessionId,
+        timeSpent: timeSpentSeconds,
       });
-      console.log(`Tracked navigation: ${fromSlide} -> ${newSlide}`);
+      console.log(`Tracked navigation: ${fromSlide} -> ${newSlide}, time spent: ${timeSpentSeconds}s`);
     } catch (error) {
       console.error('Failed to track navigation:', error);
     }
@@ -33,25 +37,28 @@ export function DeckViewer({ deckId, viewerId, sessionId, pageCount, deckName, o
 
   const goToNextSlide = useCallback(() => {
     if (currentSlide < pageCount) {
+      const timeSpent = Date.now() - slideStartTime;
       const newSlide = currentSlide + 1;
-      trackNavigation(newSlide, currentSlide);
+      trackNavigation(newSlide, currentSlide, timeSpent);
       setCurrentSlide(newSlide);
       setSlideStartTime(Date.now());
     }
-  }, [currentSlide, pageCount]);
+  }, [currentSlide, pageCount, slideStartTime]);
 
   const goToPreviousSlide = useCallback(() => {
     if (currentSlide > 1) {
+      const timeSpent = Date.now() - slideStartTime;
       const newSlide = currentSlide - 1;
-      trackNavigation(newSlide, currentSlide);
+      trackNavigation(newSlide, currentSlide, timeSpent);
       setCurrentSlide(newSlide);
       setSlideStartTime(Date.now());
     }
-  }, [currentSlide]);
+  }, [currentSlide, slideStartTime]);
 
   const goToSlide = (slideNumber: number) => {
     if (slideNumber !== currentSlide && slideNumber >= 1 && slideNumber <= pageCount) {
-      trackNavigation(slideNumber, currentSlide);
+      const timeSpent = Date.now() - slideStartTime;
+      trackNavigation(slideNumber, currentSlide, timeSpent);
       setCurrentSlide(slideNumber);
       setSlideStartTime(Date.now());
     }

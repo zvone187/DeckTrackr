@@ -205,6 +205,11 @@ class DeckService {
       averageTimeSpent: Math.round(averageTimeSpent),
       mostViewedSlide,
       dropOffSlide,
+      slideEngagement: slideViewsAgg.map(s => ({
+        pageNumber: s.pageNumber,
+        views: s.views,
+        averageTime: Math.round(s.averageTime),
+      })),
       viewers: viewers.map(v => ({
         _id: v._id.toString(),
         email: v.email,

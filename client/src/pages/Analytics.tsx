@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import { MetricCard } from '@/components/analytics/MetricCard';
 import { ViewersTable } from '@/components/analytics/ViewersTable';
 import { getDeckAnalytics } from '@/api/decks';
 import { DeckAnalytics } from '@/types/deck';
 import { useToast } from '@/hooks/useToast';
-import { Eye, MousePointerClick, Clock } from 'lucide-react';
+import { Eye, MousePointerClick, Clock, BarChart3 } from 'lucide-react';
 
 export function Analytics() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -113,6 +114,44 @@ export function Analytics() {
           description="Per viewing session"
         />
       </div>
+
+      {/* Slide Engagement */}
+      {analytics.slideEngagement && analytics.slideEngagement.length > 0 && (
+        <Card className="border-2">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              <CardTitle>Slide Engagement</CardTitle>
+            </div>
+            <CardDescription>Views and average time spent per slide</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {analytics.slideEngagement.map((slide) => (
+                <div key={slide.pageNumber} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">Slide {slide.pageNumber}</span>
+                    <div className="flex items-center gap-4 text-muted-foreground">
+                      <span>{slide.views} views</span>
+                      <span className="font-medium text-foreground">
+                        {Math.floor(slide.averageTime / 60)}m {slide.averageTime % 60}s avg
+                      </span>
+                    </div>
+                  </div>
+                  <div className="relative w-full h-2 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all"
+                      style={{
+                        width: `${(slide.views / Math.max(...analytics.slideEngagement.map(s => s.views))) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Viewers Table */}
       <div className="space-y-4">
