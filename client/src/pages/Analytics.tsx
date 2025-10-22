@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { MetricCard } from '@/components/analytics/MetricCard';
 import { ViewersTable } from '@/components/analytics/ViewersTable';
-import { getDeckAnalytics, exportAnalytics } from '@/api/decks';
+import { getDeckAnalytics } from '@/api/decks';
 import { DeckAnalytics } from '@/types/deck';
 import { useToast } from '@/hooks/useToast';
 import { Eye, MousePointerClick, Clock } from 'lucide-react';
@@ -46,35 +46,6 @@ export function Analytics() {
   const handleViewDetails = (viewerId: string) => {
     console.log('Navigating to viewer details:', viewerId);
     navigate(`/deck/${deckId}/viewer/${viewerId}`);
-  };
-
-  const handleExport = async () => {
-    if (!deckId) return;
-
-    try {
-      console.log('Exporting analytics...');
-      const blob = await exportAnalytics(deckId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${analytics?.deck.name || 'deck'}-analytics.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast({
-        title: 'Success',
-        description: 'Analytics exported successfully',
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to export analytics';
-      console.error('Failed to export analytics:', error);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-    }
   };
 
   const formatTime = (seconds: number) => {
@@ -119,10 +90,6 @@ export function Analytics() {
           <h1 className="text-4xl font-bold tracking-tight">{analytics.deck.name}</h1>
           <p className="text-muted-foreground">Analytics Dashboard</p>
         </div>
-        <Button onClick={handleExport} variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Button>
       </div>
 
       {/* Metrics */}
